@@ -32,4 +32,5 @@ class DataModule:
             batch_size=self.batch_size,
             shuffle=shuffle,
             num_workers=self.num_workers,
+            pin_memory=True,
         )
