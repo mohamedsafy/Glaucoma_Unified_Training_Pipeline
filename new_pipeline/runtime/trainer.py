@@ -56,6 +56,7 @@ class Trainer:
         return self.data_module.test_loader()
 
     def train(self) -> None:
+        print("🚀 Starting Training...")
         best_dice = 0.0
         for epoch in range(1, self.epochs + 1):
             # Use your train_one_epoch logic here (adapted to self.model, self.train_loader, etc.)
@@ -81,6 +82,7 @@ class Trainer:
                 print(f"⭐ New Best Dice: {best_dice:.4f} at Epoch {epoch}")
 
     def train_one_epoch(self, epoch: int) -> tuple[Any, ...]:
+        print(f"🔄 Epoch {epoch}/{self.epochs} - Training...")
         self.model.train()
         running_loss = 0.0
         acc_metrics = {"iou_d": 0.0, "iou_c": 0.0, "dice_d": 0.0, "dice_c": 0.0}
@@ -88,6 +90,7 @@ class Trainer:
         pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader), desc=f"Epoch {epoch}")
 
         for i, (images, masks, _) in pbar:
+            print(f"Batch {i+1}/{len(self.train_loader)} - Processing...")
             images = images.to(self.device).float()
             masks = masks.to(self.device)
 
@@ -131,6 +134,7 @@ class Trainer:
 
 
     def validate(self, epoch: int) -> tuple[Any, ...]:
+        print(f"🔍 Epoch {epoch}/{self.epochs} - Validating...")
         self.model.eval()
         val_loss = 0.0
         num_classes = 3
