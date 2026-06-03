@@ -90,7 +90,6 @@ class Trainer:
         pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader), desc=f"Epoch {epoch}")
 
         for i, (images, masks, _) in pbar:
-            print(f"Batch {i+1}/{len(self.train_loader)} - Processing...")
             images = images.to(self.device).float()
             masks = masks.to(self.device)
 
