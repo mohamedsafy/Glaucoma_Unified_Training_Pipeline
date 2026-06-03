@@ -1,0 +1,5 @@
+prune datasets
+prune drive
+prune old_pipeline
+prune runs
+global-exclude __pycache__ *.py[cod]

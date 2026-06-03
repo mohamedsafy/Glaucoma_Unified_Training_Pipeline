@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "new-pipeline"
+version = "0.1.0"
+description = "Semantic segmentation training pipeline utilities."
+requires-python = ">=3.10"
+dependencies = [
+    "albumentations",
+    "matplotlib",
+    "numpy",
+    "opencv-python-headless",
+    "pillow",
+    "scikit-learn",
+    "segmentation-models-pytorch",
+    "tensorboard",
+    "torch",
+    "torchmetrics",
+    "tqdm",
+]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+include = ["new_pipeline", "new_pipeline.*"]
+exclude = ["datasets*", "drive*", "old_pipeline*", "runs*"]

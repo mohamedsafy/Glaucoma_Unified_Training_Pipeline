@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: new-pipeline
+Version: 0.1.0
+Summary: Semantic segmentation training pipeline utilities.
+Requires-Python: >=3.10
+Requires-Dist: albumentations
+Requires-Dist: matplotlib
+Requires-Dist: numpy
+Requires-Dist: opencv-python-headless
+Requires-Dist: pillow
+Requires-Dist: scikit-learn
+Requires-Dist: segmentation-models-pytorch
+Requires-Dist: tensorboard
+Requires-Dist: torch
+Requires-Dist: torchmetrics
+Requires-Dist: tqdm

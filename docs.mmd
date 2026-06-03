@@ -1,0 +1,215 @@
+classDiagram
+    direction TB
+
+    namespace Configuration {
+        class RunConfig {
+            +device: torch.device
+            +dataset_name: str
+            +epochs: int
+            +img_height: int
+            +img_width: int
+            +accumulation_steps: int
+            +model: ModelConfig
+            +loss: LossConfig
+            +optimizer: OptimizerConfig
+            +scheduler: SchedulerConfig
+            +scaler: ScalerConfig
+            +augmentation: AugmentationConfig
+            +dataset: DatasetConfig
+        }
+
+        class ModelConfig {
+            +type: str
+            +kwargs: dict
+        }
+
+        class LossConfig {
+            +losses: list~SingleLossConfig~
+        }
+
+        class SingleLossConfig {
+            +type: str
+            +weight: float
+            +kwargs: dict
+        }
+
+        class OptimizerConfig {
+            +type: str
+            +lr: float
+            +kwargs: dict
+        }
+
+        class SchedulerConfig {
+            +type: Optional~str~
+            +kwargs: dict
+        }
+
+        class ScalerConfig {
+            +enabled: bool
+            +kwargs: dict
+        }
+
+        class AugmentationConfig {
+            +train_transforms: list
+            +val_transforms: list
+            +kwargs: dict
+        }
+
+        class DatasetConfig {
+            +name: str
+            +roi: bool
+            +train_path: str
+            +val_path: str
+            +test_path: str
+            +kwargs: dict
+        }
+    }
+
+    namespace Factories {
+        class ModelFactory {
+            +create(config: ModelConfig) nn.Module
+        }
+
+        class LossFactory {
+            +create(config: LossConfig) CombinedLoss
+        }
+
+        class OptimizerFactory {
+            +create(config: OptimizerConfig, parameters) Optimizer
+        }
+
+        class SchedulerFactory {
+            +create(config: SchedulerConfig, optimizer) LRScheduler
+        }
+
+        class ScalerFactory {
+            +create(config: ScalerConfig) GradScaler
+        }
+
+        class TransformFactory {
+            +create(config: AugmentationConfig) tuple
+        }
+
+        class DatasetFactory {
+            +create(config: DatasetConfig, transforms) tuple
+        }
+    }
+
+    namespace Orchestration {
+        class RunBuilder {
+            +build(config: RunConfig) Run
+        }
+
+        class Run {
+            +config: RunConfig
+            +trainer: Trainer
+            +reportGenerator: ReportGenerator
+            +execute() void
+            +save_experiment_info() void
+            -clean() void
+        }
+    }
+
+    namespace TrainingRuntime {
+        class Trainer {
+            +model: nn.Module
+            +criterion: CombinedLoss
+            +optimizer: Optimizer
+            +scheduler: LRScheduler
+            +scaler: GradScaler
+            +data_module: DataModule
+            +train() void
+            +train_one_epoch(epoch: int) tuple
+            +validate(epoch: int) tuple
+            +test() tuple
+        }
+
+        class CombinedLoss {
+            +weighted_losses: list
+            +__init__(weighted_losses: list)
+            +forward(pred, target) Tensor
+        }
+
+        class DataModule {
+            +train_ds: Dataset
+            +val_ds: Dataset
+            +test_ds: Dataset
+
+            +train_loader() DataLoader
+            +val_loader() DataLoader
+            +test_loader() DataLoader
+
+        }
+    }
+
+    namespace Reporting {
+        class ReportGenerator {
+            +visualization_samples: list
+            +exp_title: str
+            +exp_dir: str
+            +writer: SummaryWriter
+            +best_epoch: dict
+            +log_dir: str
+            +log_train_step(loss, metrics, epoch) void
+            +log_val_step(loss, results, custom, epoch, samples) void
+            +generate() void
+        }
+    }
+
+    %% -------------------------
+    %% Configuration composition
+    %% -------------------------
+
+    RunConfig *-- ModelConfig
+    RunConfig *-- LossConfig
+    RunConfig *-- OptimizerConfig
+    RunConfig *-- SchedulerConfig
+    RunConfig *-- ScalerConfig
+    RunConfig *-- AugmentationConfig
+    RunConfig *-- DatasetConfig
+
+    LossConfig *-- SingleLossConfig
+
+    %% -------------------------
+    %% Factory input dependencies
+    %% -------------------------
+
+    ModelFactory ..> ModelConfig
+    LossFactory ..> LossConfig
+    OptimizerFactory ..> OptimizerConfig
+    SchedulerFactory ..> SchedulerConfig
+    ScalerFactory ..> ScalerConfig
+    TransformFactory ..> AugmentationConfig
+    DatasetFactory ..> DatasetConfig
+
+    %% -------------------------
+    %% Factory output dependencies
+    %% -------------------------
+
+    LossFactory ..> CombinedLoss
+
+    %% -------------------------
+    %% Build orchestration
+    %% -------------------------
+
+    RunBuilder ..> RunConfig
+    RunBuilder ..> ModelFactory
+    RunBuilder ..> LossFactory
+    RunBuilder ..> OptimizerFactory
+    RunBuilder ..> SchedulerFactory
+    RunBuilder ..> ScalerFactory
+    RunBuilder ..> TransformFactory
+    RunBuilder ..> DatasetFactory
+    RunBuilder ..> Run
+
+    %% -------------------------
+    %% Runtime ownership
+    %% -------------------------
+
+    Run --> RunConfig
+    Run *-- Trainer
+    Run *-- ReportGenerator
+
+    Trainer --> CombinedLoss
+    ReportGenerator ..> Trainer
+    Trainer ..> DataModule

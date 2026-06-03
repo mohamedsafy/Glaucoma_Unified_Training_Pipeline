@@ -1,0 +1,11 @@
+albumentations
+matplotlib
+numpy
+opencv-python-headless
+pillow
+scikit-learn
+segmentation-models-pytorch
+tensorboard
+torch
+torchmetrics
+tqdm
