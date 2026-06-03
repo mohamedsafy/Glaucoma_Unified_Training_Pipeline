@@ -1,6 +1,8 @@
 import os
 import shutil
 
+import torch
+
 from new_pipeline.config.run_config import DatasetConfig
 from new_pipeline.utils.mask_utils import read_mask
 from new_pipeline.datasets.generate_roi_dataset import generate_roi_dataset
@@ -59,15 +61,37 @@ class StandardDataset(Dataset):
             if n is not None:
                 self.ids = self.ids[:n]
 
+            self.images= []
+            self.masks = []
+            print(f"Loading {len(self.ids)} samples into memory...")
+            for img_name in self.ids:
+                img_path = os.path.join(self.images_dir, img_name)
+                mask_path = os.path.join(self.masks_dir, os.path.splitext(img_name)[0] + '.bmp')
+                image, mask = self.get_image(img_path, mask_path)
+                self.images.append(image)
+                self.masks.append(mask)
+            
+            self.images = torch.stack(self.images)
+            self.masks = torch.stack(self.masks)
+
+            
+
     def __len__(self):
         return len(self.ids)
 
     def __getitem__(self, i):
-        img_name = self.ids[i]
+        '''img_name = self.ids[i]
         img_path = os.path.join(self.images_dir, img_name)
         mask_path = os.path.join(self.masks_dir, os.path.splitext(img_name)[0] + '.bmp')
 
-        # Open Images
+        image, mask = self.get_image(img_path, mask_path)
+        
+        return image, mask, img_name'''
+
+        return self.images[i], self.masks[i], self.ids[i]
+
+    def get_image(self, img_path: str, mask_path: str) -> Tensor:
+                # Open Images
         image = np.array(Image.open(img_path).convert("RGB"))
         mask = read_mask(mask_path)
 
@@ -83,7 +107,7 @@ class StandardDataset(Dataset):
         else: # if it's still a numpy array after augmentation (e.g., if ToTensorV2 was not applied for some reason)
             mask = from_numpy(mask).long()
 
-        return image, mask, img_name
+        return image, mask
 
 
 

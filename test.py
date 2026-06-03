@@ -18,6 +18,8 @@ from new_pipeline.config.run_config import (
 from new_pipeline.datasets.base import StandardDataset
 from new_pipeline.factories.model_factory import ModelFactory
 from new_pipeline.factories.transform_factory import TransformFactory
+from new_pipeline.orchestration.run_builder import RunBuilder
+from tqdm import tqdm
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -117,7 +119,7 @@ def minimal_run(run_config: RunConfig = config) -> None:
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item()
+            #running_loss += loss.item()
 
         if device.type == "cuda":
             torch.cuda.synchronize()
@@ -126,6 +128,25 @@ def minimal_run(run_config: RunConfig = config) -> None:
 
         print(f"Epoch {epoch:03d}: {epoch_time:.2f}s | loss {avg_loss:.4f}")
 
+def test_train_loader_time():
+    run = RunBuilder().build(config)
+    start = time.perf_counter()
+    for i in range(1, 100):
+        start = time.perf_counter()
+        pbar = tqdm(enumerate(run.trainer.train_loader), total=len(run.trainer.train_loader), desc=f"Epoch {i}")
+        for j, (images, masks, _) in pbar:
+            image = images 
+            mask = masks
+        end = time.perf_counter()
+        print(f"DataLoader iteration setup time: {end - start:.2f}s for 1 epoch")
+    end = time.perf_counter()
+    print(f"Total time for epochs: {end -start:.2f}s")
+
+def run():
+    run = RunBuilder().build(config)
+    run.execute()
 
 if __name__ == "__main__":
     minimal_run()
+    #run()
+    #test_train_loader_time()
