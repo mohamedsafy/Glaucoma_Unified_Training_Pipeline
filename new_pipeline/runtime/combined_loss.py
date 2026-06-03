@@ -37,7 +37,7 @@ class CombinedLoss(nn.Module):
             # Check if it's a standard NN loss (like CE) or an SMP loss
             if isinstance(fn, (nn.CrossEntropyLoss, nn.NLLLoss)):
                 target_sq = target_sq.float()  # Ensure targets are long for CE loss
-                pred_sq = pred_sq.float()  # Ensure predictions are float for loss calculations
+                pred_sq = pred_sq.long()  # Ensure predictions are float for loss calculations
                 loss += fn(pred_sq, target_sq) * weight
             else:
                 loss += fn(pred_sq, target) * weight
