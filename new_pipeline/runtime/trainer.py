@@ -178,11 +178,11 @@ class Trainer:
                             })
                             
         # Scheduler Step
-        if self.scheduler:
+        '''if self.scheduler:
             if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
                 self.scheduler.step(avg_loss)
             else:
-                self.scheduler.step()
+                self.scheduler.step()'''
 
         # Compute and Log
         results = {name: metric.compute() for name, metric in val_metrics.items()}
