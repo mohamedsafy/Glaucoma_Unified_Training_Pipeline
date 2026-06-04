@@ -59,11 +59,13 @@ config = RunConfig(
         augmentation=AugmentationConfig(
             train_transforms=transforms,
             val_transforms=transforms,
-            multiplier=10,
+            multiplier=40,
         ),
+        in_memory=False,
     ),
     root_exp_dir="runs/tests",
-    visualization_samples="ALL",
+    visualization_samples="EVERY 2",
+    visualization_epochs=[1, 3, 5, 7, 9],
 )
 
 
@@ -144,9 +146,13 @@ def test_train_loader_time():
 
 def run():
     run = RunBuilder().build(config)
-    run.execute()
+    #print(config.visualization_samples)
+    #print(run.report_generator.visualization_samples)
+    #print(run.report_generator.visualization_epochs)
+    #run.execute()
+    run.report_generator.generate('runs/tests/REFUGE_MUL40_dummy_ADAM_CosineAnnealingLR_CE/events.out.tfevents.1780528664.63c9945ca3ea.2925.0')
 
 if __name__ == "__main__":
-    minimal_run()
-    #run()
+    #minimal_run()
+    run()
     #test_train_loader_time()

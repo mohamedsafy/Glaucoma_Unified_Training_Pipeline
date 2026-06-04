@@ -65,6 +65,7 @@ def default_best_epoch_factory():
 class ReportGenerator:
     val_dataset: Any
     visualization_samples: Optional[Union[list[str], str]]
+    visualization_epochs: list[int] = field(default_factory=list)
     config: RunConfig = None
     exp_dir: str = None
     exp_title: str = None
@@ -199,7 +200,10 @@ class ReportGenerator:
         """
         output_path = os.path.join(self.exp_dir, 'progression_matrix.png')
         image_names = self.visualization_samples
-        target_epochs = [1,2,3]
+        target_epochs = self.visualization_epochs
+        if self.best_epoch['epoch'] not in target_epochs:
+            target_epochs = [self.best_epoch['epoch']] + target_epochs
+
         dataset = self.val_dataset
         # Rows: Input + GT + Target Epochs
         reference_rows = ['Input', 'GT']

@@ -22,19 +22,22 @@ class OrigaDatasetSpliter(DatasetSpliter):
             transforms=train_transforms,
             dataset_multiplier=config.augmentation.multiplier,
             ids=train_paths,
-            n=config.num_of_samples
+            n=config.num_of_samples,
+            in_memory=config.in_memory,
         )
         val_ds = StandardDataset(
             os.path.join(path),
             transforms=val_transforms,
             ids=val_paths,
-            n=config.num_of_samples
+            n=config.num_of_samples,
+            in_memory=config.in_memory,
         )
         test_ds = StandardDataset(
             os.path.join(path),
             transforms=val_transforms,
             ids=test_paths,
-            n=config.num_of_samples
+            n=config.num_of_samples,
+            in_memory=config.in_memory,
         )
         return train_ds, val_ds, test_ds
 

@@ -48,9 +48,10 @@ class StandardDataset(Dataset):
 
     def __init__(self, root: str,
                     ids: list[str] = None,
-                    transforms=None, dataset_multiplier=1, n=None):
+                    transforms=None, dataset_multiplier=1, n=None, in_memory=True):
             self.images_dir = os.path.join(root, 'images')
             self.masks_dir = os.path.join(root, 'masks')
+            self.in_memory = in_memory
 
             if ids is None:
                 ids = [f for f in os.listdir(self.images_dir) if f.endswith(('.png', '.jpg', '.bmp'))]
@@ -61,18 +62,19 @@ class StandardDataset(Dataset):
             if n is not None:
                 self.ids = self.ids[:n]
 
-            self.images= []
-            self.masks = []
-            print(f"Loading {len(self.ids)} samples into memory...")
-            for img_name in self.ids:
-                img_path = os.path.join(self.images_dir, img_name)
-                mask_path = os.path.join(self.masks_dir, os.path.splitext(img_name)[0] + '.bmp')
-                image, mask = self.get_image(img_path, mask_path)
-                self.images.append(image)
-                self.masks.append(mask)
-            
-            self.images = torch.stack(self.images)
-            self.masks = torch.stack(self.masks)
+            if self.in_memory:
+                self.images= []
+                self.masks = []
+                print(f"Loading {len(self.ids)} samples into memory...")
+                for img_name in self.ids:
+                    img_path = os.path.join(self.images_dir, img_name)
+                    mask_path = os.path.join(self.masks_dir, os.path.splitext(img_name)[0] + '.bmp')
+                    image, mask = self.get_image(img_path, mask_path)
+                    self.images.append(image)
+                    self.masks.append(mask)
+                
+                self.images = torch.stack(self.images)
+                self.masks = torch.stack(self.masks)
 
             
 
@@ -80,15 +82,17 @@ class StandardDataset(Dataset):
         return len(self.ids)
 
     def __getitem__(self, i):
-        '''img_name = self.ids[i]
+        if self.in_memory:
+            return self.images[i], self.masks[i], self.ids[i]
+        img_name = self.ids[i]
         img_path = os.path.join(self.images_dir, img_name)
         mask_path = os.path.join(self.masks_dir, os.path.splitext(img_name)[0] + '.bmp')
 
         image, mask = self.get_image(img_path, mask_path)
         
-        return image, mask, img_name'''
+        return image, mask, img_name
 
-        return self.images[i], self.masks[i], self.ids[i]
+        
 
     def get_image(self, img_path: str, mask_path: str) -> Tensor:
                 # Open Images

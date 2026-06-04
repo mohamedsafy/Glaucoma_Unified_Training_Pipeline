@@ -73,7 +73,9 @@ class DatasetConfig:
     test_path: Optional[str] = None
     augmentation: AugmentationConfig = field(default_factory=AugmentationConfig)
     num_of_samples: int = None
+    in_memory: bool = True
     kwargs: dict[str, Any] = field(default_factory=dict)
+    
 
     @property
     def short_desc(self) -> str:
@@ -102,8 +104,9 @@ class RunConfig:
     num_workers: int = 0
     exp_title: Optional[str] = None
     root_exp_dir: Optional[str] = None
-    visualization_samples: Optional[Union[list[str], str]] = None
-
+    visualization_samples: Optional[Union[list[str], list[int], str]] = None
+    visualization_epochs: Optional[int] = None
+    
     @property
     def short_desc(self) -> str:
         desc = self.dataset.short_desc
