@@ -103,6 +103,7 @@ class ReportGenerator:
         # Visualization logging (if any samples were collected)
         if samples:
             for sample in samples:
+                print(f"Logging visualization for sample: {sample['name']} at epoch {epoch}")
                 self.writer.add_image(f'val/segmentation_results/{sample["name"]}', visualize_result(sample), epoch)
 
     def log_best_epoch(self, epoch):
