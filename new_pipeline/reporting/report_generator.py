@@ -75,6 +75,7 @@ class ReportGenerator:
     ea: event_accumulator = field(default_factory= lambda : None)
 
     def log_train_step(self, loss: Any, metrics: dict[str, Any], epoch: int) -> None:
+        print(f"Report Generator:Logging training metrics for epoch {epoch}...")
         self.writer.add_scalar("train/loss", loss, epoch)
         self.writer.add_scalar("train/dice_cup", metrics["dice_c"], epoch)
         self.writer.add_scalar("train/dice_disc", metrics["dice_d"], epoch)
@@ -89,6 +90,7 @@ class ReportGenerator:
         epoch: int,
         samples: list[Any],
     ) -> None:
+        print(f"Report Generator:Logging validation metrics for epoch {epoch}...")
         self.writer.add_scalar("val/loss", loss, epoch)
         self.writer.add_scalar("val/dice_cup", metrics["dice_c"], epoch)
         self.writer.add_scalar("val/dice_disc", metrics["dice_d"], epoch)
