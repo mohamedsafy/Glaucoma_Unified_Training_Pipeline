@@ -170,6 +170,7 @@ class Trainer:
                     print(f"Checking visualization for batch with names: {names}")
                     for idx, name in enumerate(names):
                         if name in self.visualization_samples or self.visualization_samples == 'ALL':
+                            print(f"Adding sample '{name}' to visualization for epoch {epoch}")
                             # Store the data as a dictionary for easy plotting later
                             samples_to_visualize.append({
                                 'name': name,
@@ -179,7 +180,7 @@ class Trainer:
                             })
                 else:
                     print("No visualization samples specified, skipping visualization for this epoch.") 
-                               
+
         # Scheduler Step
         '''if self.scheduler:
             if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
