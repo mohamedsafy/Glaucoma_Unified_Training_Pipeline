@@ -45,7 +45,7 @@ config = RunConfig(
     img_height=512,
     img_width=512,
     accumulation_steps=2,
-    model=ModelConfig(type="dummy", kwargs={"num_classes": 3}),
+    model=ModelConfig(type="efficientunet-b7", kwargs={"num_classes": 3}),
     batch_size=8,
     loss=LossConfig(losses=[SingleLossConfig(type="CE", weight=1.0, kwargs={})]),
     optimizer=OptimizerConfig(type="ADAM", lr=0.001),
@@ -61,7 +61,7 @@ config = RunConfig(
             val_transforms=transforms,
             multiplier=40,
         ),
-        in_memory=False,
+        in_memory=True,
     ),
     root_exp_dir="runs/tests",
     visualization_samples="EVERY 2",
@@ -149,8 +149,8 @@ def run():
     #print(config.visualization_samples)
     #print(run.report_generator.visualization_samples)
     #print(run.report_generator.visualization_epochs)
-    #run.execute()
-    run.report_generator.generate('runs/tests/REFUGE_MUL40_dummy_ADAM_CosineAnnealingLR_CE/events.out.tfevents.1780528664.63c9945ca3ea.2925.0')
+    run.execute()
+    #run.report_generator.generate('runs/tests/REFUGE_MUL40_dummy_ADAM_CosineAnnealingLR_CE/events.out.tfevents.1780528664.63c9945ca3ea.2925.0')
 
 if __name__ == "__main__":
     #minimal_run()
