@@ -90,7 +90,7 @@ class ReportGenerator:
         epoch: int,
         samples: list[Any],
     ) -> None:
-        print(f"Report Generator:Logging validation metrics for epoch {epoch}...")
+        #print(f"Report Generator:Logging validation metrics for epoch {epoch}...")
         self.writer.add_scalar("val/loss", loss, epoch)
         self.writer.add_scalar("val/dice_cup", metrics["dice_c"], epoch)
         self.writer.add_scalar("val/dice_disc", metrics["dice_d"], epoch)
@@ -103,10 +103,10 @@ class ReportGenerator:
         # Visualization logging (if any samples were collected)
         if samples:
             for sample in samples:
-                print(f"Logging visualization for sample: {sample['name']} at epoch {epoch}")
+                #print(f"Logging visualization for sample: {sample['name']} at epoch {epoch}")
                 self.writer.add_image(f'val/segmentation_results/{sample["name"]}', visualize_result(sample), epoch)
-        else:
-            print("No visualization samples to log for this epoch.")
+        #else:
+            #print("No visualization samples to log for this epoch.")
 
     def log_best_epoch(self, epoch):
         self.best_epoch = epoch

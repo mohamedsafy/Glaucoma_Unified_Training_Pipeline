@@ -171,7 +171,7 @@ class Trainer:
                     for idx, name in enumerate(names):
                         if True:
                         #if name in self.visualization_samples or self.visualization_samples == 'ALL':
-                            print(f"Adding sample '{name}' to visualization for epoch {epoch}")
+                            #print(f"Adding sample '{name}' to visualization for epoch {epoch}")
                             # Store the data as a dictionary for easy plotting later
                             samples_to_visualize.append({
                                 'name': name,
