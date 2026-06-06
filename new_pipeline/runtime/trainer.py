@@ -167,6 +167,7 @@ class Trainer:
 
                 #--- NEW: Targeted Visualization Logic ---
                 if self.visualization_samples is not None:
+                    print(f"Checking visualization for batch with names: {names}")
                     for idx, name in enumerate(names):
                         if name in self.visualization_samples or self.visualization_samples == 'ALL':
                             # Store the data as a dictionary for easy plotting later
@@ -176,7 +177,9 @@ class Trainer:
                                 'mask': masks[idx].cpu(),
                                 'pred': preds[idx].cpu()
                             })
-                            
+                else:
+                    print("No visualization samples specified, skipping visualization for this epoch.") 
+                               
         # Scheduler Step
         '''if self.scheduler:
             if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
