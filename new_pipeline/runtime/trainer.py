@@ -169,7 +169,8 @@ class Trainer:
                 if self.visualization_samples is not None:
                     print(f"Checking visualization for batch with names: {names}")
                     for idx, name in enumerate(names):
-                        if name in self.visualization_samples or self.visualization_samples == 'ALL':
+                        if True:
+                        #if name in self.visualization_samples or self.visualization_samples == 'ALL':
                             print(f"Adding sample '{name}' to visualization for epoch {epoch}")
                             # Store the data as a dictionary for easy plotting later
                             samples_to_visualize.append({
@@ -192,7 +193,7 @@ class Trainer:
         results = {name: metric.compute() for name, metric in val_metrics.items()}
         avg_loss = val_loss / len(self.val_loader)
 
-        self.report_generator.log_val_step(avg_loss, metrics, self.optimizer.param_groups[0]['lr'], epoch, samples_to_visualize)
+        self.report_generator.log_val_step(avg_loss, metrics, self.optimizer.param_groups[0]['lr'], epoch, samples=samples_to_visualize)
 
 
         n = len(self.val_loader)

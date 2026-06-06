@@ -45,7 +45,7 @@ config = RunConfig(
     img_height=512,
     img_width=512,
     accumulation_steps=2,
-    model=ModelConfig(type="efficientunet-b7", kwargs={"num_classes": 3}),
+    model=ModelConfig(type="dummy", kwargs={"num_classes": 3}),
     batch_size=8,
     loss=LossConfig(losses=[SingleLossConfig(type="CE", weight=1.0, kwargs={})]),
     optimizer=OptimizerConfig(type="ADAM", lr=0.001),
@@ -59,7 +59,7 @@ config = RunConfig(
         augmentation=AugmentationConfig(
             train_transforms=transforms,
             val_transforms=transforms,
-            multiplier=40,
+            multiplier=1,
         ),
         in_memory=True,
     ),
