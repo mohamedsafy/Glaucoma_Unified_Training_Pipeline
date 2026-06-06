@@ -262,7 +262,8 @@ class ReportGenerator:
                         axes[r][c].imshow(pred_img)
                     else:
                         axes[r][c].text(0.5, 0.5, f'Ep {epoch}\nMissing', ha='center')
-                except:
+                except Exception as e:
+                    print(f"⚠️ Error fetching prediction for {name} at epoch {epoch}: {e}")
                     axes[r][c].text(0.5, 0.5, 'Not Found', ha='center')
 
         # --- 3. Formatting & Labels ---
