@@ -17,7 +17,7 @@ def get_metrics(num_classes: int, device: torch.device) -> dict[str, Any]:
 
 
 
-def calculate_metrics(pred_mask, true_mask):
+def calculate_metrics(pred_mask, true_mask, batch_size=None):
     """
     Calculates metrics for:
     1. Cup (Class 1)
@@ -29,7 +29,7 @@ def calculate_metrics(pred_mask, true_mask):
     """
     iou_disc, iou_cup = 0.0, 0.0
     dice_disc, dice_cup = 0.0, 0.0
-    batch_size = true_mask.size(0)
+    batch_size = true_mask.size(0) if batch_size is None else batch_size
     smooth = 1e-6
 
     for i in range(batch_size):

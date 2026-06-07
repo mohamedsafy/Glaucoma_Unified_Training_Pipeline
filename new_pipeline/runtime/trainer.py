@@ -1,6 +1,6 @@
 from __future__ import annotations
-
-from dataclasses import dataclass
+from collections import defaultdict
+from dataclasses import dataclass, field
 import os
 from typing import Any
 
@@ -17,6 +17,9 @@ from torch import nn
 
 import gc
 
+def defaultdict_factory():
+    return dict()
+
 @dataclass
 class Trainer:
     model: Any
@@ -30,7 +33,6 @@ class Trainer:
     accumulation_steps: int = 1
     report_generator: ReportGenerator = None
     visualization_samples: list[str] | str | None = None  # List of sample names to visualize, 'ALL' for all samples, or None for no visualization
-
     @property
     def train_ds(self) -> Any:
         return self.data_module.train_ds
@@ -165,22 +167,21 @@ class Trainer:
                 metrics["dice_d"] += dice_d.item()
                 metrics["dice_c"] += dice_c.item()
 
-                #--- NEW: Targeted Visualization Logic ---
-                if self.visualization_samples is not None:
-                    print(f"Checking visualization for batch with names: {names}")
-                    for idx, name in enumerate(names):
-                        if True:
-                        #if name in self.visualization_samples or self.visualization_samples == 'ALL':
-                            #print(f"Adding sample '{name}' to visualization for epoch {epoch}")
-                            # Store the data as a dictionary for easy plotting later
-                            samples_to_visualize.append({
-                                'name': name,
-                                'image': images[idx].cpu(),
-                                'mask': masks[idx].cpu(),
-                                'pred': preds[idx].cpu()
-                            })
-                else:
-                    print("No visualization samples specified, skipping visualization for this epoch.") 
+                for idx, (name, image, mask, pred) in enumerate(zip(names, images, masks, preds)):
+                    samples_to_visualize.append({
+                        'name': name,
+                        'image': image.cpu(),
+                        'mask': mask.cpu(),
+                        'pred': pred.cpu()
+                    })
+                    iou_d, iou_c, dice_d, dice_c = calculate_metrics(pred.unsqueeze(0), mask.unsqueeze(0), batch_size=1)
+                    self.report_generator.log_sample_progress(name, epoch, dice_c.item(), dice_d.item(), iou_c.item(), iou_d.item())
+
+                    '''self.samples_progress_history[name]['dice_c'].append(dice_c.item())
+                    self.samples_progress_history[name]['dice_d'].append(dice_d.item())
+                    self.samples_progress_history[name]['iou_c'].append(iou_c.item())
+                    self.samples_progress_history[name]['iou_d'].append(iou_d.item())'''
+
 
         # Scheduler Step
         '''if self.scheduler:
@@ -202,7 +203,7 @@ class Trainer:
 
     def test(self) -> tuple[Any, ...]:
         pass
-    
+
     def clean(self):
         #self.data_module.clean()
         self._clean()

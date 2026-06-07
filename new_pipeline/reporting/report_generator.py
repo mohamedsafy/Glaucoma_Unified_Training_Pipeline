@@ -104,9 +104,15 @@ class ReportGenerator:
         if samples:
             for sample in samples:
                 #print(f"Logging visualization for sample: {sample['name']} at epoch {epoch}")
-                self.writer.add_image(f'val/segmentation_results/{sample["name"]}', visualize_result(sample), epoch)
+                self.writer.add_image(f'val/samples/{sample["name"]}/visualization', visualize_result(sample), epoch)
         #else:
             #print("No visualization samples to log for this epoch.")
+
+    def log_sample_progress(self, name: str, epoch: int, dice_c: float, dice_d: float, iou_c: float, iou_d: float) -> None:
+        self.writer.add_scalar(f'val/samples/{name}/dice_cup', dice_c, epoch)
+        self.writer.add_scalar(f'val/samples/{name}/dice_disc', dice_d, epoch)
+        self.writer.add_scalar(f'val/samples/{name}/iou_cup', iou_c, epoch)
+        self.writer.add_scalar(f'val/samples/{name}/iou_disc', iou_d, epoch)
 
     def log_best_epoch(self, epoch):
         self.best_epoch = epoch
@@ -134,6 +140,7 @@ class ReportGenerator:
 
         print("Starting to generate progression matrix")
         self.generate_progression_matrix()
+        self.generate_heatmaps()
 
 
     def generate_graphs(self):
@@ -254,7 +261,7 @@ class ReportGenerator:
             for r_idx, epoch in enumerate(target_epochs):
                 # Row index is r_idx + 2 (because of Input and GT rows)
                 r = r_idx + 2
-                tag = f'val/segmentation_results/{name}'
+                tag = f'val/samples/{name}/visualization'
 
                 try:
                     image_events = self.ea.Images(tag)
@@ -288,6 +295,61 @@ class ReportGenerator:
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close()
         print(f"✅ Full Matrix Report saved to: {output_path}")
+
+    def generate_heatmaps(self, log_dir: str = None, image_names: list[str] = None, target_epochs: list[int] = None, exp_dir: str = None) -> None:
+        '''
+        Generate heatmaps for each validation sample metrics recorded in each validate loop.
+        A heatmap is generated for each metric - X axis is epoch, Y axis is sample, color is metric value.
+        The heatmaps are saved as images in the experiment directory.
+
+        '''
+        if log_dir is None:
+            log_dir = os.path.join(self.exp_dir,
+                        sorted([f for f in os.listdir(self.exp_dir) if f.startswith('events.')])[-1])
+        if image_names is None:
+            #image_names = self.visualization_samples
+            image_names = self.val_dataset.ids
+        if target_epochs is None:
+            #target_epochs = self.visualization_epochs
+            target_epochs = range(1, 101)
+        if exp_dir is None:
+            exp_dir = self.exp_dir
+        if isinstance(image_names, str):
+            image_names = [image_names]
+        if isinstance(target_epochs, int):
+            target_epochs = [target_epochs]
+
+        print(f"Generating heatmaps from log file:{log_dir} for {len(image_names)} samples and epochs: {target_epochs}")
+        self.ea = event_accumulator.EventAccumulator(log_dir, size_guidance={event_accumulator.SCALARS: 0})
+        self.ea.Reload()
+        metrics = ['dice_cup', 'dice_disc', 'iou_cup', 'iou_disc']
+
+        for metric in metrics:
+            heatmap = np.full((len(image_names), len(target_epochs)), np.nan, dtype=float)
+            for i, name in enumerate(image_names):
+                tag = f'val/samples/{name}/{metric}'
+                try:
+                    values = {e.step: e.value for e in self.ea.Scalars(tag)}
+                except Exception:
+                    continue
+                for j, epoch in enumerate(target_epochs):
+                    if epoch in values:
+                        heatmap[i, j] = values[epoch]
+
+            fig, ax = plt.subplots(figsize=(max(6, len(target_epochs) * 0.7), max(3, len(image_names) * 0.7)))
+            im = ax.imshow(heatmap, aspect='auto', cmap='viridis')
+            ax.set_xticks(list(range(len(target_epochs))))
+            ax.set_xticklabels(target_epochs, rotation=45, fontsize=8)
+            ax.set_yticks(list(range(len(image_names))))
+            ax.set_yticklabels(image_names, fontsize=8)
+            ax.set_xlabel('Epoch')
+            ax.set_ylabel('Sample')
+            ax.set_title(f'{metric.replace('_', ' ').capitalize()} Heatmap')
+            fig.colorbar(im, ax=ax, label=metric.replace('_', ' ').capitalize())
+            os.makedirs(exp_dir, exist_ok=True)
+            fig.tight_layout()
+            fig.savefig(os.path.join(exp_dir, f'{metric}_heatmap.png'), dpi=300, bbox_inches='tight')
+            plt.close(fig)
 
 
     def save_metadata(self, ex: Exception | None = None) -> None:

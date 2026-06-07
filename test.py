@@ -149,6 +149,8 @@ def run():
     #print(config.visualization_samples)
     #print(run.report_generator.visualization_samples)
     #print(run.report_generator.visualization_epochs)
+    #run.trainer.train()
+    #print(run.trainer.samples_progress_history)
     run.execute()
     #run.report_generator.generate('runs/tests/REFUGE_MUL40_dummy_ADAM_CosineAnnealingLR_CE/events.out.tfevents.1780528664.63c9945ca3ea.2925.0')
 
