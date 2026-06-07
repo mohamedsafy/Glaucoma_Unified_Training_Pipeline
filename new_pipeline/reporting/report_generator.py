@@ -302,16 +302,14 @@ class ReportGenerator:
         A heatmap is generated for each metric - X axis is epoch, Y axis is sample, color is metric value.
         The heatmaps are saved as images in the experiment directory.
 
+        Optimized implementation: scan scalar keys once and build compact lookups to minimize EA calls.
         '''
         if log_dir is None:
-            log_dir = os.path.join(self.exp_dir,
-                        sorted([f for f in os.listdir(self.exp_dir) if f.startswith('events.')])[-1])
+            log_dir = os.path.join(self.exp_dir, sorted([f for f in os.listdir(self.exp_dir) if f.startswith('events.')])[-1])
         if image_names is None:
-            #image_names = self.visualization_samples
-            image_names = self.val_dataset.ids
+            image_names = self.visualization_samples or getattr(self.val_dataset, 'ids', [])
         if target_epochs is None:
-            #target_epochs = self.visualization_epochs
-            target_epochs = range(1, 101)
+            target_epochs = self.visualization_epochs or (list(range(1, self.config.epochs + 1)) if getattr(self, 'config', None) and getattr(self.config, 'epochs', None) else [])
         if exp_dir is None:
             exp_dir = self.exp_dir
         if isinstance(image_names, str):
@@ -319,36 +317,58 @@ class ReportGenerator:
         if isinstance(target_epochs, int):
             target_epochs = [target_epochs]
 
-        print(f"Generating heatmaps from log file:{log_dir} for {len(image_names)} samples and epochs: {target_epochs}")
+        image_list = list(image_names)
+        epoch_list = list(target_epochs)
+        if not image_list or not epoch_list:
+            return
+
         self.ea = event_accumulator.EventAccumulator(log_dir, size_guidance={event_accumulator.SCALARS: 0})
         self.ea.Reload()
+
         metrics = ['dice_cup', 'dice_disc', 'iou_cup', 'iou_disc']
+        metric_set = set(metrics)
+        image_set = set(image_list)
+        epoch_set = set(epoch_list)
 
+        # Build metric->sample->{epoch:value} mapping by scanning keys once
+        data: dict[str, dict[str, dict[int, float]]] = {m: {} for m in metrics}
+        for key in self.ea.scalars.Keys():
+            try:
+                prefix_name, sample_name, metric = key.rsplit('/', 2)
+            except Exception:
+                continue
+            if prefix_name != 'val/samples' or metric not in metric_set or sample_name not in image_set:
+                continue
+            try:
+                events = self.ea.Scalars(key)
+            except Exception:
+                continue
+            samp = data[metric].setdefault(sample_name, {})
+            for e in events:
+                if e.step in epoch_set:
+                    samp[e.step] = e.value
+
+        os.makedirs(exp_dir, exist_ok=True)
         for metric in metrics:
-            heatmap = np.full((len(image_names), len(target_epochs)), np.nan, dtype=float)
-            for i, name in enumerate(image_names):
-                tag = f'val/samples/{name}/{metric}'
-                try:
-                    values = {e.step: e.value for e in self.ea.Scalars(tag)}
-                except Exception:
-                    continue
-                for j, epoch in enumerate(target_epochs):
-                    if epoch in values:
-                        heatmap[i, j] = values[epoch]
+            heat = np.full((len(image_list), len(epoch_list)), np.nan, dtype=float)
+            mdata = data.get(metric, {})
+            for i, name in enumerate(image_list):
+                vals = mdata.get(name, {})
+                for j, ep in enumerate(epoch_list):
+                    heat[i, j] = vals.get(ep, np.nan)
 
-            fig, ax = plt.subplots(figsize=(max(6, len(target_epochs) * 0.7), max(3, len(image_names) * 0.7)))
-            im = ax.imshow(heatmap, aspect='auto', cmap='viridis')
-            ax.set_xticks(list(range(len(target_epochs))))
-            ax.set_xticklabels(target_epochs, rotation=45, fontsize=8)
-            ax.set_yticks(list(range(len(image_names))))
-            ax.set_yticklabels(image_names, fontsize=8)
+            fig, ax = plt.subplots(figsize=(max(6, len(epoch_list) * 0.6), max(3, len(image_list) * 0.25)))
+            im = ax.imshow(heat, aspect='auto', cmap='viridis')
+            ax.set_xticks(list(range(len(epoch_list))))
+            ax.set_xticklabels(epoch_list, rotation=45, fontsize=6)
+            ax.set_yticks(list(range(len(image_list))))
+            ax.set_yticklabels(image_list, fontsize=6)
             ax.set_xlabel('Epoch')
             ax.set_ylabel('Sample')
-            ax.set_title(f'{metric.replace('_', ' ').capitalize()} Heatmap')
+            ax.set_title(f'{metric.replace("_", " ").capitalize()} Heatmap')
             fig.colorbar(im, ax=ax, label=metric.replace('_', ' ').capitalize())
-            os.makedirs(exp_dir, exist_ok=True)
             fig.tight_layout()
-            fig.savefig(os.path.join(exp_dir, f'{metric}_heatmap.png'), dpi=300, bbox_inches='tight')
+            fig.savefig(os.path.join(exp_dir, f'{metric}_heatmap.png'), dpi=200, bbox_inches='tight')
             plt.close(fig)
 
 

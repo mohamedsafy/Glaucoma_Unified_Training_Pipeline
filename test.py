@@ -41,7 +41,7 @@ transforms = [
 
 config = RunConfig(
     device=DEVICE,
-    epochs=10,
+    epochs=100,
     img_height=512,
     img_width=512,
     accumulation_steps=2,
@@ -59,12 +59,12 @@ config = RunConfig(
         augmentation=AugmentationConfig(
             train_transforms=transforms,
             val_transforms=transforms,
-            multiplier=1,
+            multiplier=40,
         ),
         in_memory=True,
     ),
     root_exp_dir="runs/tests",
-    visualization_samples="EVERY 2",
+    visualization_samples="EVERY 50",
     visualization_epochs=[1, 3, 5, 7, 9],
 )
 
