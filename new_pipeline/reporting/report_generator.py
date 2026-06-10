@@ -307,15 +307,11 @@ class ReportGenerator:
         if log_dir is None:
             log_dir = os.path.join(self.exp_dir, sorted([f for f in os.listdir(self.exp_dir) if f.startswith('events.')])[-1])
         if image_names is None:
-            image_names = self.visualization_samples or getattr(self.val_dataset, 'ids', [])
+            image_names = self.val_dataset.ids
         if target_epochs is None:
-            target_epochs = self.visualization_epochs or (list(range(1, self.config.epochs + 1)) if getattr(self, 'config', None) and getattr(self.config, 'epochs', None) else [])
+            target_epochs = list(range(1, self.config.epochs + 1))
         if exp_dir is None:
             exp_dir = self.exp_dir
-        if isinstance(image_names, str):
-            image_names = [image_names]
-        if isinstance(target_epochs, int):
-            target_epochs = [target_epochs]
 
         image_list = list(image_names)
         epoch_list = list(target_epochs)

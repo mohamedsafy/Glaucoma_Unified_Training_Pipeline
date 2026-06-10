@@ -44,9 +44,9 @@ config = RunConfig(
     epochs=100,
     img_height=512,
     img_width=512,
-    accumulation_steps=2,
+    accumulation_steps=8,
     model=ModelConfig(type="dummy", kwargs={"num_classes": 3}),
-    batch_size=8,
+    batch_size=5,
     loss=LossConfig(losses=[SingleLossConfig(type="CE", weight=1.0, kwargs={})]),
     optimizer=OptimizerConfig(type="ADAM", lr=0.001),
     scheduler=SchedulerConfig(type="CosineAnnealingLR", kwargs={"T_max": 10}),
@@ -121,7 +121,7 @@ def minimal_run(run_config: RunConfig = config) -> None:
             loss.backward()
             optimizer.step()
 
-            #running_loss += loss.item()
+            running_loss += loss.item()
 
         if device.type == "cuda":
             torch.cuda.synchronize()

@@ -101,7 +101,7 @@ class Trainer:
                 loss =  self.criterion(outputs, masks)
                 # Normalize loss if using accumulation
                 loss = loss / self.accumulation_steps
-
+            
             if self.scaler:
                 self.scaler.scale(loss).backward()
                 if (i + 1) % self.accumulation_steps == 0:
@@ -116,14 +116,14 @@ class Trainer:
 
             # Metric Tracking
             running_loss += loss.item() * self.accumulation_steps
-            preds = torch.argmax(outputs, dim=1)
+            #preds = torch.argmax(outputs, dim=1)
 
             # Using your existing calculate_metrics helper
-            iou_d, iou_c, dice_d, dice_c = calculate_metrics(preds, masks)
-            acc_metrics["iou_d"] += iou_d.item()
-            acc_metrics["iou_c"] += iou_c.item()
-            acc_metrics["dice_d"] += dice_d.item()
-            acc_metrics["dice_c"] += dice_c.item()
+            #iou_d, iou_c, dice_d, dice_c = calculate_metrics(outputs, masks)
+            acc_metrics["iou_d"] += 0
+            acc_metrics["iou_c"] += 0
+            acc_metrics["dice_d"] += 0
+            acc_metrics["dice_c"] += 0
 
             pbar.set_postfix(loss=running_loss/(i+1))
 
@@ -158,14 +158,14 @@ class Trainer:
 
                 preds_prob = torch.softmax(outputs, dim=1)
                 preds = torch.argmax(preds_prob, dim=1)
-                iou_d, iou_c, dice_d, dice_c = calculate_metrics(preds, masks)
-
+                #iou_d, iou_c, dice_d, dice_c = calculate_metrics(preds, masks)
+                iou_d, iou_c, dice_d, dice_c = 0,0,0,0
                 metrics['precision'].update(preds, masks)
                 metrics['recall'].update(preds, masks)
-                metrics["iou_d"] += iou_d.item()
-                metrics["iou_c"] += iou_c.item()
-                metrics["dice_d"] += dice_d.item()
-                metrics["dice_c"] += dice_c.item()
+                metrics["iou_d"] += 0
+                metrics["iou_c"] += 0
+                metrics["dice_d"] += 0
+                metrics["dice_c"] += 0
 
                 for idx, (name, image, mask, pred) in enumerate(zip(names, images, masks, preds)):
                     samples_to_visualize.append({
