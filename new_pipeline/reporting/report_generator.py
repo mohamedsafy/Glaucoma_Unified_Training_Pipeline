@@ -96,8 +96,8 @@ class ReportGenerator:
         self.writer.add_scalar("val/dice_disc", metrics["dice_d"], epoch)
         self.writer.add_scalar("val/iou_cup", metrics["iou_c"], epoch)
         self.writer.add_scalar("val/iou_disc", metrics["iou_d"], epoch)
-        self.writer.add_scalar("val/recall", metrics["recall"].compute().mean(), epoch)
-        self.writer.add_scalar("val/precision", metrics["precision"].compute().mean(), epoch)
+        self.writer.add_scalar("val/recall", metrics["recall"], epoch)
+        self.writer.add_scalar("val/precision", metrics["precision"], epoch)
         self.writer.add_scalar("val/lr", lr, epoch)
 
         # Visualization logging (if any samples were collected)
