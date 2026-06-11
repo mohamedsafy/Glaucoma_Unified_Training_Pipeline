@@ -119,7 +119,7 @@ class Trainer:
             preds = torch.argmax(outputs, dim=1)
 
             # Using your existing calculate_metrics helper
-            iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(preds, masks)
+            iou_d, iou_c, dice_d, dice_c = calculate_metrics(preds, masks, batch_size=1)
             acc_metrics["iou_d"] += iou_d
             acc_metrics["iou_c"] += iou_c
             acc_metrics["dice_d"] += dice_d
