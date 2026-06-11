@@ -196,13 +196,6 @@ class Trainer:
         avg_precision = results['precision'].mean().item()
         avg_recall = results['recall'].mean().item()
 
-        # Step Scheduler if it exists
-        if hasattr(self, 'scheduler') and self.scheduler:
-            if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-                self.scheduler.step(avg_loss)
-            else:
-                self.scheduler.step()
-
         # Optional: External logging hook activation
         running_metrics.update({'precision': avg_precision, 'recall': avg_recall})
         if hasattr(self, 'report_generator'):
