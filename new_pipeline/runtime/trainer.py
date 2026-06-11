@@ -144,6 +144,7 @@ class Trainer:
         
         running_metrics = {"iou_d": 0.0, "iou_c": 0.0, "dice_d": 0.0, "dice_c": 0.0}
         samples_to_visualize = []
+        
 
         with torch.no_grad():
             # Enable Automatic Mixed Precision for faster inference math
@@ -199,12 +200,7 @@ class Trainer:
 
         # Log step package
         running_metrics.update({'precision': avg_precision, 'recall': avg_recall})
-        if hasattr(self, 'report_generator'):
-            self.report_generator.log_val_step(
-                avg_loss, running_metrics, 
-                self.optimizer.param_groups[0]['lr'], 
-                epoch, samples=samples_to_visualize
-            )
+        #self.report_generator.log_val_step(avg_loss, running_metrics,self.optimizer.param_groups[0]['lr'], epoch, samples=samples_to_visualize)
 
         mean_dice = (running_metrics["dice_d"] + running_metrics["dice_c"]) / 2
 
