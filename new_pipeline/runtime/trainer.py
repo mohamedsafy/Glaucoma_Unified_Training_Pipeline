@@ -142,47 +142,48 @@ class Trainer:
         num_classes = 3
         val_metrics = get_metrics(num_classes, self.device)
         
-        # Track accumulated metrics across all batches
         running_metrics = {"iou_d": 0.0, "iou_c": 0.0, "dice_d": 0.0, "dice_c": 0.0}
         samples_to_visualize = []
 
         with torch.no_grad():
-            for images, masks, names in tqdm(self.val_loader, desc='Val'):
-                images = images.to(self.device, non_blocking=True).float()
-                masks = masks.to(self.device, non_blocking=True)
+            # Enable Automatic Mixed Precision for faster inference math
+            with torch.cuda.amp.autocast(enabled=(self.device == 'cuda')):
+                for images, masks, names in tqdm(self.val_loader, desc='Val'):
+                    images = images.to(self.device, non_blocking=True).float()
+                    masks = masks.to(self.device, non_blocking=True)
 
-                outputs = self.model(images)
-                loss = self.criterion(outputs, masks)
-                val_loss += loss.item()
+                    outputs = self.model(images)
+                    loss = self.criterion(outputs, masks)
+                    val_loss += loss.item()
 
-                # SKIPPED SOFTMAX: argmax is identical before/after softmax
-                preds = torch.argmax(outputs, dim=1) 
+                    preds = torch.argmax(outputs, dim=1) 
 
-                # Vectorized metrics calculated lightning fast on GPU
-                iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(preds, masks)
-                
-                running_metrics["iou_d"] += iou_d
-                running_metrics["iou_c"] += iou_c
-                running_metrics["dice_d"] += dice_d
-                running_metrics["dice_c"] += dice_c
+                    # Fast GPU Vectorized calculation
+                    iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(preds, masks)
+                    
+                    running_metrics["iou_d"] += iou_d
+                    running_metrics["iou_c"] += iou_c
+                    running_metrics["dice_d"] += dice_d
+                    running_metrics["dice_c"] += dice_c
 
-                # Update Torchmetrics using calculated predictions instead of raw outputs
-                val_metrics['precision'].update(preds, masks)
-                val_metrics['recall'].update(preds, masks)
+                    # Torchmetrics batch update
+                    val_metrics['precision'].update(preds, masks)
+                    val_metrics['recall'].update(preds, masks)
 
-                # Peripheral sample tracking for visualization (Optimized memory allocation)
-                # Max 5 batches saved to avoid exploding RAM during validation
-                #if len(samples_to_visualize) < 16: 
-                for name, img, mask, pred in zip(names, images, masks, preds):
-                    samples_to_visualize.append({
-                        'name': name,
-                        'image': img.cpu(),
-                        'mask': mask.cpu(),
-                        'pred': pred.cpu()
-                    })
-                    #iou_d, iou_c, dice_d, dice_c  = calculate_metrics_batched(pred.unsqueeze(0), mask.unsqueeze(0))
+                    # --- OPTIMIZED LOGGING BLOCK ---
+                    # Move entire batches to CPU in ONE unified operation instead of 16 individual ones
+                    images_cpu = images.cpu()
+                    masks_cpu = masks.cpu()
+                    preds_cpu = preds.cpu()
 
-                    #self.report_generator.log_sample_progress(name, epoch, dice_c.item(), dice_d.item(), iou_c.item(), iou_d.item())
+                    # Loop entirely in host memory (RAM) without stalling the GPU
+                    for name, img, msk, prd in zip(names, images_cpu, masks_cpu, preds_cpu):
+                        samples_to_visualize.append({
+                            'name': name,
+                            'image': img,
+                            'mask': msk,
+                            'pred': prd
+                        })
 
         # Average metrics over total number of batches
         num_batches = len(self.val_loader)
@@ -196,7 +197,7 @@ class Trainer:
         avg_precision = results['precision'].mean().item()
         avg_recall = results['recall'].mean().item()
 
-        # Optional: External logging hook activation
+        # Log step package
         running_metrics.update({'precision': avg_precision, 'recall': avg_recall})
         if hasattr(self, 'report_generator'):
             self.report_generator.log_val_step(
@@ -205,7 +206,6 @@ class Trainer:
                 epoch, samples=samples_to_visualize
             )
 
-        # Combined Mean Dice Score
         mean_dice = (running_metrics["dice_d"] + running_metrics["dice_c"]) / 2
 
         return (
