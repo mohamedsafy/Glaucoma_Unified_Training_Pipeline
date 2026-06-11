@@ -119,7 +119,7 @@ class Trainer:
             preds = torch.argmax(outputs, dim=1)
 
             # Using your existing calculate_metrics helper
-            iou_d, iou_c, dice_d, dice_c = calculate_metrics(preds, masks, batch_size=1)
+            iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(preds, masks)
             acc_metrics["iou_d"] += iou_d
             acc_metrics["iou_c"] += iou_c
             acc_metrics["dice_d"] += dice_d
@@ -185,7 +185,7 @@ class Trainer:
                             'mask': msk,
                             'pred': prd
                         })
-                        iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(outputs, masks)
+                        iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(preds, masks)
                         self.report_generator.log_sample_progress(name, epoch, dice_c.item(), dice_d.item(), iou_c.item(), iou_d.item())
 
         # Average metrics over total number of batches
