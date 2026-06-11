@@ -2,14 +2,14 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field
 import os
-from typing import Any
+from typing import Any, Tuple
 
 from new_pipeline.reporting.report_generator import ReportGenerator
 from new_pipeline.runtime.combined_loss import CombinedLoss
 from new_pipeline.runtime.data_module import DataModule
 
 
-from new_pipeline.utils.metrics_utils import calculate_metrics, get_metrics
+from new_pipeline.utils.metrics_utils import calculate_metrics, calculate_metrics_batched, get_metrics
 import torch.cuda.amp as amp
 from tqdm import tqdm
 import torch
@@ -134,72 +134,96 @@ class Trainer:
         return avg_loss, acc_metrics["dice_c"]/n, acc_metrics["dice_d"]/n, acc_metrics["iou_c"]/n, acc_metrics["iou_d"]/n, self.optimizer.param_groups[0]['lr']
 
 
-    def validate(self, epoch: int) -> tuple[Any, ...]:
+    def validate(self, epoch: int) -> Tuple[Any, ...]:
         print(f"🔍 Epoch {epoch}/{self.epochs} - Validating...")
         self.model.eval()
+        
         val_loss = 0.0
         num_classes = 3
-        # Use factory to get fresh metrics each validation run
         val_metrics = get_metrics(num_classes, self.device)
-
-        metrics = {"iou_d": 0.0, "iou_c": 0.0, "dice_d": 0.0, "dice_c": 0.0, 'precision': val_metrics['precision'], 'recall': val_metrics['recall']}
-
+        
+        # Track accumulated metrics across all batches
+        running_metrics = {"iou_d": 0.0, "iou_c": 0.0, "dice_d": 0.0, "dice_c": 0.0}
         samples_to_visualize = []
 
         with torch.no_grad():
             for images, masks, names in tqdm(self.val_loader, desc='Val'):
-                images = images.to(self.device).float()
-                masks = masks.to(self.device)
+                images = images.to(self.device, non_blocking=True).float()
+                masks = masks.to(self.device, non_blocking=True)
 
                 outputs = self.model(images)
-                
                 loss = self.criterion(outputs, masks)
                 val_loss += loss.item()
 
-                preds_prob = torch.softmax(outputs, dim=1)
-                preds = torch.argmax(preds_prob, dim=1)
-                #iou_d, iou_c, dice_d, dice_c = calculate_metrics(preds, masks)
-                iou_d, iou_c, dice_d, dice_c = 0,0,0,0
-                #metrics['precision'].update(outputs, masks)
-                #metrics['recall'].update(outputs, masks)
-                metrics["iou_d"] += 0
-                metrics["iou_c"] += 0
-                metrics["dice_d"] += 0
-                metrics["dice_c"] += 0
+                # SKIPPED SOFTMAX: argmax is identical before/after softmax
+                preds = torch.argmax(outputs, dim=1) 
 
-                for idx, (name, image, mask, pred) in enumerate(zip(names, images, masks, outputs)):
+                # Vectorized metrics calculated lightning fast on GPU
+                iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(preds, masks)
+                
+                running_metrics["iou_d"] += iou_d
+                running_metrics["iou_c"] += iou_c
+                running_metrics["dice_d"] += dice_d
+                running_metrics["dice_c"] += dice_c
+
+                # Update Torchmetrics using calculated predictions instead of raw outputs
+                val_metrics['precision'].update(preds, masks)
+                val_metrics['recall'].update(preds, masks)
+
+                # Peripheral sample tracking for visualization (Optimized memory allocation)
+                # Max 5 batches saved to avoid exploding RAM during validation
+                #if len(samples_to_visualize) < 16: 
+                for name, img, mask, pred in zip(names, images, masks, preds):
                     samples_to_visualize.append({
                         'name': name,
-                        'image': image.cpu(),
+                        'image': img.cpu(),
                         'mask': mask.cpu(),
                         'pred': pred.cpu()
                     })
-                    iou_d, iou_c, dice_d, dice_c = 0,0,0,0 #calculate_metrics(pred.unsqueeze(0), mask.unsqueeze(0), batch_size=1)
+                    #iou_d, iou_c, dice_d, dice_c  = calculate_metrics_batched(pred.unsqueeze(0), mask.unsqueeze(0))
+
                     #self.report_generator.log_sample_progress(name, epoch, dice_c.item(), dice_d.item(), iou_c.item(), iou_d.item())
 
-                    '''self.samples_progress_history[name]['dice_c'].append(dice_c.item())
-                    self.samples_progress_history[name]['dice_d'].append(dice_d.item())
-                    self.samples_progress_history[name]['iou_c'].append(iou_c.item())
-                    self.samples_progress_history[name]['iou_d'].append(iou_d.item())'''
+        # Average metrics over total number of batches
+        num_batches = len(self.val_loader)
+        avg_loss = val_loss / num_batches
+        
+        for key in running_metrics:
+            running_metrics[key] /= num_batches
 
+        # Final Torchmetrics computation
+        results = {name: metric.compute() for name, metric in val_metrics.items()}
+        avg_precision = results['precision'].mean().item()
+        avg_recall = results['recall'].mean().item()
 
-        # Scheduler Step
-        '''if self.scheduler:
+        # Step Scheduler if it exists
+        if hasattr(self, 'scheduler') and self.scheduler:
             if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
                 self.scheduler.step(avg_loss)
             else:
-                self.scheduler.step()'''
+                self.scheduler.step()
 
-        # Compute and Log
-        results = {name: metric.compute() for name, metric in val_metrics.items()}
-        avg_loss = val_loss / len(self.val_loader)
+        # Optional: External logging hook activation
+        if hasattr(self, 'report_generator'):
+            self.report_generator.log_val_step(
+                avg_loss, running_metrics, 
+                self.optimizer.param_groups[0]['lr'], 
+                epoch, samples=samples_to_visualize
+            )
 
-        #self.report_generator.log_val_step(avg_loss, metrics, self.optimizer.param_groups[0]['lr'], epoch, samples=samples_to_visualize)
+        # Combined Mean Dice Score
+        mean_dice = (running_metrics["dice_d"] + running_metrics["dice_c"]) / 2
 
-
-        n = len(self.val_loader)
-        return avg_loss, (metrics["dice_d"]/n + metrics["dice_c"]/n)/2,metrics["dice_d"]/n, metrics["dice_c"]/n, metrics["iou_d"]/n, metrics["iou_c"]/n, results['recall'].mean().item(), results['precision'].mean().item()
-
+        return (
+            avg_loss, 
+            mean_dice, 
+            running_metrics["dice_d"], 
+            running_metrics["dice_c"], 
+            running_metrics["iou_d"], 
+            running_metrics["iou_c"], 
+            avg_recall, 
+            avg_precision
+        )
 
     def test(self) -> tuple[Any, ...]:
         pass
