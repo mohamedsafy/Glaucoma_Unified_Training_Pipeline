@@ -76,7 +76,7 @@ class Trainer:
 
             if val_dice > best_dice:
                 best_dice = val_dice
-                #torch.save(self.model.state_dict(), os.path.join(self.exp_dir, 'best_model.pth'))
+                torch.save(self.model.state_dict(), os.path.join(self.exp_dir, 'best_model.pth'))
                 self.report_generator.log_best_epoch(
                 {'epoch':epoch, 'val/dice_cup':dice_c, 'val/dice_disc': dice_d, 'val/iou_cup': iou_c, 'val/iou_disc': iou_d, 'val/precision': precision, 'val/recall': recall,
                                 'train/dice_cup':t_dice_c, 'train/dice_disc': t_dice_d, 'train/iou_cup': t_iou_c, 'train/iou_disc': t_iou_d, 'val/lr':lr,
@@ -116,14 +116,14 @@ class Trainer:
 
             # Metric Tracking
             running_loss += loss.item() * self.accumulation_steps
-            #preds = torch.argmax(outputs, dim=1)
+            preds = torch.argmax(outputs, dim=1)
 
             # Using your existing calculate_metrics helper
-            #iou_d, iou_c, dice_d, dice_c = calculate_metrics(outputs, masks)
-            acc_metrics["iou_d"] += 0
-            acc_metrics["iou_c"] += 0
-            acc_metrics["dice_d"] += 0
-            acc_metrics["dice_c"] += 0
+            iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(outputs, masks)
+            acc_metrics["iou_d"] += iou_d
+            acc_metrics["iou_c"] += iou_c
+            acc_metrics["dice_d"] += dice_d
+            acc_metrics["dice_c"] += dice_c
 
             pbar.set_postfix(loss=running_loss/(i+1))
 
@@ -185,6 +185,8 @@ class Trainer:
                             'mask': msk,
                             'pred': prd
                         })
+                        iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(outputs, masks)
+                        self.report_generator.log_sample_progress(name, epoch, dice_c.item(), dice_d.item(), iou_c.item(), iou_d.item())
 
         # Average metrics over total number of batches
         num_batches = len(self.val_loader)
@@ -200,7 +202,7 @@ class Trainer:
 
         # Log step package
         running_metrics.update({'precision': avg_precision, 'recall': avg_recall})
-        #self.report_generator.log_val_step(avg_loss, running_metrics,self.optimizer.param_groups[0]['lr'], epoch, samples=samples_to_visualize)
+        self.report_generator.log_val_step(avg_loss, running_metrics,self.optimizer.param_groups[0]['lr'], epoch, samples=samples_to_visualize)
 
         mean_dice = (running_metrics["dice_d"] + running_metrics["dice_c"]) / 2
 
