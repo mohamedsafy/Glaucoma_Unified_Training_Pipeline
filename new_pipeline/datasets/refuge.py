@@ -16,14 +16,14 @@ class RefugeDatasetSpliter(DatasetSpliter):
         train_ds = StandardDataset(
             os.path.join(path, 'train'),
             transforms= train_transforms,
-            #dataset_multiplier=config.augmentation.multiplier,
+            dataset_multiplier=config.augmentation.multiplier,
             in_memory=config.in_memory,
         )
         val_ds = StandardDataset(
             os.path.join(path, 'val'),
             transforms= val_transforms,
             n=config.num_of_samples,
-            dataset_multiplier=config.augmentation.multiplier, # TODO: REMOVE THIS, ONLY FOR TESTING PURPOSES
+            #dataset_multiplier=config.augmentation.multiplier, # TODO: REMOVE THIS, ONLY FOR TESTING PURPOSES
             in_memory=config.in_memory,
         )
         test_ds = StandardDataset(
