@@ -146,12 +146,15 @@ def test_train_loader_time():
 
 def run():
     run = RunBuilder().build(config)
+    run.trainer.train_one_epoch(1)
+    for i in range(1, 100):
+        run.trainer.validate(i)
     #print(config.visualization_samples)
     #print(run.report_generator.visualization_samples)
     #print(run.report_generator.visualization_epochs)
     #run.trainer.train()
     #print(run.trainer.samples_progress_history)
-    run.execute()
+    #run.execute()
     #run.report_generator.generate('runs/tests/REFUGE_MUL40_dummy_ADAM_CosineAnnealingLR_CE/events.out.tfevents.1780528664.63c9945ca3ea.2925.0')
 
 if __name__ == "__main__":

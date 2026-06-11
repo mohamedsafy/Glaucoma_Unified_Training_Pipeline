@@ -160,22 +160,22 @@ class Trainer:
                 preds = torch.argmax(preds_prob, dim=1)
                 #iou_d, iou_c, dice_d, dice_c = calculate_metrics(preds, masks)
                 iou_d, iou_c, dice_d, dice_c = 0,0,0,0
-                metrics['precision'].update(preds, masks)
-                metrics['recall'].update(preds, masks)
+                #metrics['precision'].update(outputs, masks)
+                #metrics['recall'].update(outputs, masks)
                 metrics["iou_d"] += 0
                 metrics["iou_c"] += 0
                 metrics["dice_d"] += 0
                 metrics["dice_c"] += 0
 
-                for idx, (name, image, mask, pred) in enumerate(zip(names, images, masks, preds)):
+                for idx, (name, image, mask, pred) in enumerate(zip(names, images, masks, outputs)):
                     samples_to_visualize.append({
                         'name': name,
                         'image': image.cpu(),
                         'mask': mask.cpu(),
                         'pred': pred.cpu()
                     })
-                    iou_d, iou_c, dice_d, dice_c = calculate_metrics(pred.unsqueeze(0), mask.unsqueeze(0), batch_size=1)
-                    self.report_generator.log_sample_progress(name, epoch, dice_c.item(), dice_d.item(), iou_c.item(), iou_d.item())
+                    iou_d, iou_c, dice_d, dice_c = 0,0,0,0 #calculate_metrics(pred.unsqueeze(0), mask.unsqueeze(0), batch_size=1)
+                    #self.report_generator.log_sample_progress(name, epoch, dice_c.item(), dice_d.item(), iou_c.item(), iou_d.item())
 
                     '''self.samples_progress_history[name]['dice_c'].append(dice_c.item())
                     self.samples_progress_history[name]['dice_d'].append(dice_d.item())
@@ -194,7 +194,7 @@ class Trainer:
         results = {name: metric.compute() for name, metric in val_metrics.items()}
         avg_loss = val_loss / len(self.val_loader)
 
-        self.report_generator.log_val_step(avg_loss, metrics, self.optimizer.param_groups[0]['lr'], epoch, samples=samples_to_visualize)
+        #self.report_generator.log_val_step(avg_loss, metrics, self.optimizer.param_groups[0]['lr'], epoch, samples=samples_to_visualize)
 
 
         n = len(self.val_loader)
