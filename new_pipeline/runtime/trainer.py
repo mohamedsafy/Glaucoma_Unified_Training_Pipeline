@@ -204,6 +204,7 @@ class Trainer:
                 self.scheduler.step()
 
         # Optional: External logging hook activation
+        running_metrics.update({'precision': avg_precision, 'recall': avg_recall})
         if hasattr(self, 'report_generator'):
             self.report_generator.log_val_step(
                 avg_loss, running_metrics, 
