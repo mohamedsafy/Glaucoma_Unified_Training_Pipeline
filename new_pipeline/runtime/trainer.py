@@ -66,13 +66,9 @@ class Trainer:
             val_loss, val_dice, dice_d, dice_c, iou_d, iou_c, recall, precision = self.validate(epoch)
 
             print(f"Epoch {epoch} Metrics:")
-            print(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
+            print(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | LR: {lr:.6f}")
             print(f"Val Dice CUP | DISC : {dice_c}|{dice_d}")
             print(f"Val IoU CUP | DISC : {iou_c}|{iou_d}")
-
-            # Scheduler Step
-
-            self.scheduler.step(val_dice)
 
             if val_dice > best_dice:
                 best_dice = val_dice
@@ -130,6 +126,7 @@ class Trainer:
         n = len(self.train_loader)
         avg_loss = running_loss / n
         self.report_generator.log_train_step(avg_loss, acc_metrics, epoch)
+        self.scheduler.step(avg_loss)
         return avg_loss, acc_metrics["dice_c"]/n, acc_metrics["dice_d"]/n, acc_metrics["iou_c"]/n, acc_metrics["iou_d"]/n, self.optimizer.param_groups[0]['lr']
 
 
