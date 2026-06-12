@@ -76,8 +76,7 @@ class Trainer:
 
             if val_dice > best_dice:
                 best_dice = val_dice
-                torch.save(self.model.state_dict(), os.path.join(self.exp_dir, 'best_model.pth'))
-                self.report_generator.log_best_epoch(
+                self.report_generator.log_best_epoch(self.model.state_dict(),
                 {'epoch':epoch, 'val/dice_cup':dice_c, 'val/dice_disc': dice_d, 'val/iou_cup': iou_c, 'val/iou_disc': iou_d, 'val/precision': precision, 'val/recall': recall,
                                 'train/dice_cup':t_dice_c, 'train/dice_disc': t_dice_d, 'train/iou_cup': t_iou_c, 'train/iou_disc': t_iou_d, 'val/lr':lr,
                                 'val/loss': val_loss, 'train/loss': train_loss})

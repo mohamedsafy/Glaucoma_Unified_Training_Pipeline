@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from tensorboard.backend.event_processing import event_accumulator
 from PIL import Image
 import os
-import json
+import json, torch
 import traceback
 import numpy as np
 import io
@@ -114,7 +114,8 @@ class ReportGenerator:
         self.writer.add_scalar(f'val/samples/{name}/iou_cup', iou_c, epoch)
         self.writer.add_scalar(f'val/samples/{name}/iou_disc', iou_d, epoch)
 
-    def log_best_epoch(self, epoch):
+    def log_best_epoch(self, model, epoch):
+        torch.save(model, os.path.join(self.exp_dir, 'best_model.pth'))
         self.best_epoch = epoch
 
     def generate(self, log_dir: str = None) -> None:
