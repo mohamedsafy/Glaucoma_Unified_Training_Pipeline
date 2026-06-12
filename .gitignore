@@ -1,3 +1,4 @@
 runs/*
 datasets/*
+datasets
 __pycache__/

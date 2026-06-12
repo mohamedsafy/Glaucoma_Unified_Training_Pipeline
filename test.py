@@ -19,6 +19,9 @@ from new_pipeline.datasets.base import StandardDataset
 from new_pipeline.factories.model_factory import ModelFactory
 from new_pipeline.factories.transform_factory import TransformFactory
 from new_pipeline.orchestration.run_builder import RunBuilder
+from new_pipeline.reporting.report_generator import ReportGenerator
+from new_pipeline.orchestration.dataset_builder import DatasetBuilder
+from new_pipeline.reporting.dataset_viewer import view_dataset
 from tqdm import tqdm
 
 
@@ -59,7 +62,7 @@ config = RunConfig(
         augmentation=AugmentationConfig(
             train_transforms=transforms,
             val_transforms=transforms,
-            multiplier=40,
+            multiplier=1,
         ),
         in_memory=True,
     ),
@@ -144,6 +147,21 @@ def test_train_loader_time():
     end = time.perf_counter()
     print(f"Total time for epochs: {end -start:.2f}s")
 
+def test_generate_heatmaps(log_dir: str):
+    image_names = os.listdir('datasets/REFUGE/val/images')
+    report_generator = ReportGenerator(exp_dir='runs/tests/generate_heatmaps',  visualization_samples=[], visualization_epochs=[1, 2, 3], val_dataset=None)
+    report_generator.generate_heatmaps(log_dir=log_dir, image_names=image_names, target_epochs=list(range(1, 101)))
+
+def test_view_dataset():
+    transform, _ = TransformFactory.create(config.dataset.augmentation)
+    train_ds = StandardDataset(
+        root="datasets/REFUGE/train",
+        transforms=transform,
+        dataset_multiplier=1,
+        in_memory=False,
+    )
+    view_dataset(train_ds, num_samples=10)
+
 def run():
     run = RunBuilder().build(config)
     run.trainer.train_one_epoch(1)
@@ -159,5 +177,7 @@ def run():
 
 if __name__ == "__main__":
     #minimal_run()
-    run()
+    #run()
     #test_train_loader_time()
+    #test_generate_heatmaps(log_dir='runs/events.out.tfevents.1781085062.0ee0d5f50739.1513.1')
+    test_view_dataset()

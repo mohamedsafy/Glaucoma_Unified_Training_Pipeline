@@ -327,6 +327,7 @@ class ReportGenerator:
         epoch_set = set(epoch_list)
 
         # Build metric->sample->{epoch:value} mapping by scanning keys once
+        print(f"Building data mapping for heatmaps from log: {log_dir}")
         data: dict[str, dict[str, dict[int, float]]] = {m: {} for m in metrics}
         for key in self.ea.scalars.Keys():
             try:
@@ -344,6 +345,7 @@ class ReportGenerator:
                 if e.step in epoch_set:
                     samp[e.step] = e.value
 
+        print(f"Data mapping completed. Generating heatmaps for metrics: {metrics}")
         os.makedirs(exp_dir, exist_ok=True)
         for metric in metrics:
             heat = np.full((len(image_list), len(epoch_list)), np.nan, dtype=float)
@@ -353,8 +355,13 @@ class ReportGenerator:
                 for j, ep in enumerate(epoch_list):
                     heat[i, j] = vals.get(ep, np.nan)
 
+            print(f"Heatmap for {metric} generated with shape {heat.shape}. Saving to {exp_dir}")
             fig, ax = plt.subplots(figsize=(max(6, len(epoch_list) * 0.6), max(3, len(image_list) * 0.25)))
+
+            print(f"Plotting heatmap for {metric}...")
             im = ax.imshow(heat, aspect='auto', cmap='viridis')
+
+            print(f"Configuring axes for {metric} heatmap...")
             ax.set_xticks(list(range(len(epoch_list))))
             ax.set_xticklabels(epoch_list, rotation=45, fontsize=6)
             ax.set_yticks(list(range(len(image_list))))
@@ -364,8 +371,12 @@ class ReportGenerator:
             ax.set_title(f'{metric.replace("_", " ").capitalize()} Heatmap')
             fig.colorbar(im, ax=ax, label=metric.replace('_', ' ').capitalize())
             fig.tight_layout()
-            fig.savefig(os.path.join(exp_dir, f'{metric}_heatmap.png'), dpi=200, bbox_inches='tight')
+
+            print(f"Saving heatmap for {metric}...")
+            fig.savefig(os.path.join(exp_dir, f'{metric}_heatmap.png'), dpi=100, bbox_inches='tight')
             plt.close(fig)
+
+            print(f"✅ Heatmap for {metric} saved to: {os.path.join(exp_dir, f'{metric}_heatmap.png')}")
 
 
     def save_metadata(self, ex: Exception | None = None) -> None:

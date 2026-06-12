@@ -10,6 +10,7 @@ from torch.utils.data import Dataset
 from torch import Tensor, from_numpy
 from PIL import Image
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 
 class DatasetSourcer:
     def source(self, config: DatasetConfig) -> str:
@@ -45,36 +46,55 @@ class DatasetSpliter:
     pass
 
 class StandardDataset(Dataset):
-
     def __init__(self, root: str,
-                    ids: list[str] = None,
-                    transforms=None, dataset_multiplier=1, n=None, in_memory=True):
-            self.images_dir = os.path.join(root, 'images')
-            self.masks_dir = os.path.join(root, 'masks')
-            self.in_memory = in_memory
+                 ids: list[str] = None,
+                 transforms=None, dataset_multiplier=1, n=None, in_memory=True):
+        self.images_dir = os.path.join(root, 'images')
+        self.masks_dir = os.path.join(root, 'masks')
+        self.in_memory = in_memory
+        self.transforms = transforms
 
-            if ids is None:
-                ids = [f for f in os.listdir(self.images_dir) if f.endswith(('.png', '.jpg', '.bmp'))]
+        if ids is None:
+            ids = [f for f in os.listdir(self.images_dir) if f.endswith(('.png', '.jpg', '.bmp'))]
 
-            self.ids = ids * dataset_multiplier
-            self.transforms = transforms
-            self.ids.sort()
-            if n is not None:
-                self.ids = self.ids[:n]
+        ids.sort()
+        if n is not None:
+            ids = ids[:n]
 
-            if self.in_memory:
-                self.images= []
-                self.masks = []
-                print(f"Loading {len(self.ids)} samples into memory...")
-                for img_name in self.ids:
+        # Save the finalized, multiplied list of names for index retrieval
+        self.ids = ids * dataset_multiplier
+
+        if self.in_memory:
+            # OPTIMIZATION: Only load UNIQUE images from disk to save hours of duplicate work
+            unique_ids = list(set(ids))
+            unique_ids.sort()
+            
+            unique_storage = {}
+            print(f"🚀 Parallel preloading {len(unique_ids)} unique samples into memory...")
+
+            # Helper function for worker threads
+            def load_single_item(img_name):
+                try:
                     img_path = os.path.join(self.images_dir, img_name)
                     mask_path = os.path.join(self.masks_dir, os.path.splitext(img_name)[0] + '.bmp')
                     image, mask = self.get_image(img_path, mask_path)
-                    self.images.append(image)
-                    self.masks.append(mask)
-                
-                self.images = torch.stack(self.images)
-                self.masks = torch.stack(self.masks)
+                except Exception as e:
+                    print(f"Error loading {img_name}: {e}")
+                    image, mask = None, None
+                return img_name, image, mask
+
+            # Use maximum available CPU workers to read data in parallel
+            max_workers = min(32, os.cpu_count() + 4)
+            print(f"Using {max_workers} worker threads for parallel loading.")
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                results = executor.map(load_single_item, unique_ids)
+                for img_name, image, mask in results:
+                    unique_storage[img_name] = (image, mask)
+
+            # Map the unique preloaded items to your final multiplied list structure
+            self.images = torch.stack([unique_storage[name][0] for name in self.ids])
+            self.masks = torch.stack([unique_storage[name][1] for name in self.ids])
+            print("✅ Finished preloading dataset into memory.")
 
             
 
