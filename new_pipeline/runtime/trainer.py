@@ -181,7 +181,7 @@ class Trainer:
                             'mask': mask,
                             'pred': pred
                         })
-                        iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(pred, mask)
+                        iou_d, iou_c, dice_d, dice_c = calculate_metrics(pred, mask, batch_size =1) # change
                         self.report_generator.log_sample_progress(name, epoch, dice_c, dice_d, iou_c, iou_d)
 
         # Average metrics over total number of batches
