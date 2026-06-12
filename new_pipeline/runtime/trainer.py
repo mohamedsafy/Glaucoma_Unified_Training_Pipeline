@@ -174,14 +174,14 @@ class Trainer:
                     preds_cpu = preds.cpu()
 
                     # Loop entirely in host memory (RAM) without stalling the GPU
-                    for name, img, msk, prd in zip(names, images_cpu, masks_cpu, preds_cpu):
+                    for name, image, mask, pred in zip(names, images_cpu, masks_cpu, preds_cpu):
                         samples_to_visualize.append({
                             'name': name,
-                            'image': img,
-                            'mask': msk,
-                            'pred': prd
+                            'image': image,
+                            'mask': mask,
+                            'pred': pred
                         })
-                        iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(preds, masks)
+                        iou_d, iou_c, dice_d, dice_c = calculate_metrics_batched(pred, mask)
                         self.report_generator.log_sample_progress(name, epoch, dice_c, dice_d, iou_c, iou_d)
 
         # Average metrics over total number of batches
