@@ -26,6 +26,9 @@ def calculate_metrics(pred_mask, true_mask, batch_size=None):
     Calculates the following metrics:
     1. Dice
     2. IoU
+
+    Returns:
+    A tuple of (iou_disc, iou_cup, dice_disc, dice_cup)
     """
     iou_disc, iou_cup = 0.0, 0.0
     dice_disc, dice_cup = 0.0, 0.0

@@ -44,7 +44,7 @@ transforms = [
 
 config = RunConfig(
     device=DEVICE,
-    epochs=100,
+    epochs=5,
     img_height=512,
     img_width=512,
     accumulation_steps=8,
@@ -57,14 +57,14 @@ config = RunConfig(
     dataset=DatasetConfig(
         name="REFUGE",
         roi=False,
-        local_root="datasets/REFUGE",
+        local_root="datasets/REFUGE_Test",
         drive_root="drive/datasets/REFUGE",
         augmentation=AugmentationConfig(
             train_transforms=transforms,
             val_transforms=transforms,
-            multiplier=1,
+            multiplier=1
         ),
-        in_memory=True,
+        in_memory=False,
     ),
     root_exp_dir="runs/tests",
     visualization_samples="EVERY 50",
@@ -164,20 +164,20 @@ def test_view_dataset():
 
 def run():
     run = RunBuilder().build(config)
-    run.trainer.train_one_epoch(1)
-    for i in range(1, 100):
-        run.trainer.validate(i)
+    #run.trainer.train_one_epoch(1)
+    #for i in range(1, 100):
+    #    run.trainer.validate(i)
     #print(config.visualization_samples)
     #print(run.report_generator.visualization_samples)
     #print(run.report_generator.visualization_epochs)
     #run.trainer.train()
     #print(run.trainer.samples_progress_history)
-    #run.execute()
+    run.execute()
     #run.report_generator.generate('runs/tests/REFUGE_MUL40_dummy_ADAM_CosineAnnealingLR_CE/events.out.tfevents.1780528664.63c9945ca3ea.2925.0')
 
 if __name__ == "__main__":
     #minimal_run()
-    #run()
+    run()
     #test_train_loader_time()
     #test_generate_heatmaps(log_dir='runs/events.out.tfevents.1781085062.0ee0d5f50739.1513.1')
-    test_view_dataset()
+    #test_view_dataset()
