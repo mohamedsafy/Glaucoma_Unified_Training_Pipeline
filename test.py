@@ -57,7 +57,7 @@ config = RunConfig(
     dataset=DatasetConfig(
         name="REFUGE",
         roi=False,
-        local_root="datasets/REFUGE_Test",
+        local_root="datasets/REFUGE",
         drive_root="drive/datasets/REFUGE",
         augmentation=AugmentationConfig(
             train_transforms=transforms,
@@ -164,15 +164,16 @@ def test_view_dataset():
 
 def run():
     run = RunBuilder().build(config)
+    #view_dataset(run.trainer.data_module.train_ds, num_samples=100)
     #run.trainer.train_one_epoch(1)
-    #for i in range(1, 100):
-    #    run.trainer.validate(i)
+    for i in range(1, 100):
+        run.trainer.validate(i)
     #print(config.visualization_samples)
     #print(run.report_generator.visualization_samples)
     #print(run.report_generator.visualization_epochs)
     #run.trainer.train()
     #print(run.trainer.samples_progress_history)
-    run.execute()
+    #run.execute()
     #run.report_generator.generate('runs/tests/REFUGE_MUL40_dummy_ADAM_CosineAnnealingLR_CE/events.out.tfevents.1780528664.63c9945ca3ea.2925.0')
 
 if __name__ == "__main__":

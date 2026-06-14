@@ -32,6 +32,11 @@ def calculate_metrics(pred_mask, true_mask, batch_size=None):
     """
     iou_disc, iou_cup = 0.0, 0.0
     dice_disc, dice_cup = 0.0, 0.0
+
+    if pred_mask.dim() == 2 and true_mask.dim() == 2:
+        pred_mask = pred_mask.unsqueeze(0)
+        true_mask = true_mask.unsqueeze(0)
+
     batch_size = true_mask.size(0) if batch_size is None else batch_size
     smooth = 1e-6
 
