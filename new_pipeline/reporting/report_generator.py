@@ -293,7 +293,7 @@ class ReportGenerator:
                     axes[r][c].set_title(f"Sample:\n{name}", fontsize=10)
 
         plt.tight_layout()
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.savefig(output_path, dpi=100, bbox_inches='tight')
         plt.close()
         print(f"✅ Full Matrix Report saved to: {output_path}")
 
