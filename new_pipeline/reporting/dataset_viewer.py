@@ -33,7 +33,7 @@ def view_dataset(
         )
 
         for row_idx, dataset_idx in enumerate(batch_indices):
-            print(f"Visualizing sample {dataset_idx + 1}")
+            #print(f"Visualizing sample {dataset_idx + 1}")
             image, mask, name = dataset[dataset_idx]
 
             image_np = image.permute(1, 2, 0).numpy()
