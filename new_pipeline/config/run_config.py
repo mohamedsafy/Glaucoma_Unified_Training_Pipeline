@@ -114,9 +114,9 @@ class RunConfig:
         desc = self.dataset.short_desc
         desc += f"_{self.model.type}_{self.optimizer.type}_{self.scheduler.type}"
         desc += f"_{self.loss.short_desc}"
-        if self.exp_title_postfix not None:
+        if self.exp_title_postfix is not None:
             desc = desc + '_' + self.exp_title_postfix
-        if self.exp_title_prefix not None:
+        if self.exp_title_prefix is not None:
             desc = self.exp_title_prefix + '_' + desc
         
         return desc
