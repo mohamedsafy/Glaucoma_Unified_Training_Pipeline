@@ -12,7 +12,7 @@ def build_dummy_model(**kwargs):
         return DummySegmentationModel(**kwargs)
 
 def build_efficientunet_b7(**kwargs):
-        return smp.UnetPlusPlus(encoder_name='efficientnet-b7', kwargs)
+        return smp.UnetPlusPlus(encoder_name='efficientnet-b7', **kwargs)
 
 class ModelFactory(RegistryFactory[ModelConfig]):
     registry = { 'dummy' : build_dummy_model,
