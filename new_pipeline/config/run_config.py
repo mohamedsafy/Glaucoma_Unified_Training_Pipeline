@@ -103,6 +103,8 @@ class RunConfig:
     batch_size: int = 1
     num_workers: int = 0
     exp_title: Optional[str] = None
+    exp_title_postfix: Optional[str] = None
+    exp_title_prefix: Optional[str] = None
     root_exp_dir: Optional[str] = None
     visualization_samples: Optional[Union[list[str], list[int], str]] = None
     visualization_epochs: Optional[int] = None
@@ -112,5 +114,9 @@ class RunConfig:
         desc = self.dataset.short_desc
         desc += f"_{self.model.type}_{self.optimizer.type}_{self.scheduler.type}"
         desc += f"_{self.loss.short_desc}"
+        if self.exp_title_postfix not None:
+            desc = desc + '_' + self.exp_title_postfix
+        if self.exp_title_prefix not None:
+            desc = self.exp_title_prefix + '_' + desc
         
         return desc
