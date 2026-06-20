@@ -66,7 +66,7 @@ class Trainer:
             val_loss, val_dice, dice_d, dice_c, iou_d, iou_c, recall, precision = self.validate(epoch)
             self.scheduler.step(val_loss)
             print(f"Epoch {epoch} Metrics:")
-            print(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | LR: {lr:.6f}")
+            print(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | LR: {lr}")
             print(f"Val Dice CUP | DISC : {dice_c}|{dice_d}")
             print(f"Val IoU CUP | DISC : {iou_c}|{iou_d}")
 
