@@ -127,7 +127,7 @@ class Trainer:
         avg_loss = running_loss / n
         self.report_generator.log_train_step(avg_loss, acc_metrics, epoch)
         self.scheduler.step(avg_loss)
-        return avg_loss, acc_metrics["dice_c"]/n, acc_metrics["dice_d"]/n, acc_metrics["iou_c"]/n, acc_metrics["iou_d"]/n, self.optimizer.param_groups[0]['lr']
+        return avg_loss, acc_metrics["dice_c"]/n, acc_metrics["dice_d"]/n, acc_metrics["iou_c"]/n, acc_metrics["iou_d"]/n, self.scheduler.get_last_lr()[0]
 
 
     def validate(self, epoch: int) -> Tuple[Any, ...]:
