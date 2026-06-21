@@ -8,7 +8,7 @@ from new_pipeline.factories.base import RegistryFactory
 import torch.optim as optim
 
 class OptimizerFactory(RegistryFactory[OptimizerConfig]):
-    registry = {'ADAM': optim.Adam, 'SGD': optim.SGD, 'ADAMW': torch.optim.AdamW}
+    registry = {'ADAM': optim.Adam, 'SGD': optim.SGD, 'ADAMW': optim.AdamW}
 
     @classmethod
     def create(cls, config: OptimizerConfig, parameters: Iterable[Any]) -> Any:
