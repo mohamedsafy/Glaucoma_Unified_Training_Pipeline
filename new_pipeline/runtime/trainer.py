@@ -64,7 +64,7 @@ class Trainer:
             # Use your train_one_epoch logic here (adapted to self.model, self.train_loader, etc.)
             train_loss,t_dice_c,t_dice_d,t_iou_c,t_iou_d,lr = self.train_one_epoch(epoch)
             val_loss, val_dice, dice_d, dice_c, iou_d, iou_c, recall, precision = self.validate(epoch)
-            self.scheduler.step(val_loss)
+            self.scheduler.step()
             print(f"Epoch {epoch} Metrics:")
             print(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | LR: {lr}")
             print(f"Val Dice CUP | DISC : {dice_c}|{dice_d}")
