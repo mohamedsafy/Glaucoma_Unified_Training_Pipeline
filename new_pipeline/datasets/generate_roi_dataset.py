@@ -79,7 +79,7 @@ def generate_roi_dataset(input_dir, output_dir, crop_size=512, max_workers=os.cp
 
     splits_to_process = list(set(subfolders) & set(['train', 'val', 'test'])) #support for drishti
 
-
+    print(f"Found the following splits {splits_to_process}")
     for split in splits_to_process:
         curr_input_path = os.path.join(input_dir, split)
 
