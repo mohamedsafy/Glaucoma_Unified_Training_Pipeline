@@ -76,22 +76,22 @@ def generate_roi_dataset(input_dir, output_dir, crop_size=512, max_workers=os.cp
     has_splits = any(s in subfolders for s in ['train', 'val', 'test'])
 
     splits_to_process = subfolders if has_splits else ['.'] # Use root if no splits found
-    print(f"Found the following splits {splits_to_process}")
-    splits_to_process = list(set(subfolders) & set(['train', 'val', 'test'])) #support for drishti
+    #print(f"Found the following splits {splits_to_process}")
+    #splits_to_process = list(set(subfolders) & set(['train', 'val', 'test'])) #support for drishti
 
-    print(f"Found the following splits {splits_to_process}")
-    print(f"has splits: {has_splits}")
-    print(f"subfolders: {subfolders}")
+    #print(f"Found the following splits {splits_to_process}")
+    #print(f"has splits: {has_splits}")
+    #print(f"subfolders: {subfolders}")
     for split in splits_to_process:
-        print("help")
+        #print("help")
         curr_input_path = os.path.join(input_dir, split)
 
         # Flexibly find images and masks folders
         m_folder = get_subfolder(curr_input_path, ['mask', 'masks', 'gts', 'GroundTruth'])
         i_folder = get_subfolder(curr_input_path, ['images', 'Images', 'img', 'IMG', 'image'])
 
-        print(f"m_folder: {m_folder}")
-        print(f"i_folder: {i_folder}")
+        #print(f"m_folder: {m_folder}")
+        #print(f"i_folder: {i_folder}")
 
         if not m_folder or not i_folder:
             continue # Skip folder if image/mask pair directory not found
