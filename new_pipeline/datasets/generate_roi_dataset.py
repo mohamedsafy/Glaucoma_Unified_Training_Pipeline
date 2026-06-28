@@ -83,6 +83,7 @@ def generate_roi_dataset(input_dir, output_dir, crop_size=512, max_workers=os.cp
     print(f"has splits: {has_splits}")
     print(f"subfolders: {subfolders}")
     for split in splits_to_process:
+        print("help")
         curr_input_path = os.path.join(input_dir, split)
 
         # Flexibly find images and masks folders
