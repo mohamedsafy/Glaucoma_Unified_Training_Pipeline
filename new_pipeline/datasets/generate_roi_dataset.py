@@ -76,7 +76,7 @@ def generate_roi_dataset(input_dir, output_dir, crop_size=512, max_workers=os.cp
     has_splits = any(s in subfolders for s in ['train', 'val', 'test'])
 
     splits_to_process = subfolders if has_splits else ['.'] # Use root if no splits found
-
+    print(f"Found the following splits {splits_to_process}")
     splits_to_process = list(set(subfolders) & set(['train', 'val', 'test'])) #support for drishti
 
     print(f"Found the following splits {splits_to_process}")
