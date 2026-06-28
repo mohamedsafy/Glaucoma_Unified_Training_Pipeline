@@ -89,6 +89,9 @@ def generate_roi_dataset(input_dir, output_dir, crop_size=512, max_workers=os.cp
         m_folder = get_subfolder(curr_input_path, ['mask', 'masks', 'gts', 'GroundTruth'])
         i_folder = get_subfolder(curr_input_path, ['images', 'Images', 'img', 'IMG', 'image'])
 
+        print(f"m_folder: {m_folder}")
+        print(f"i_folder: {i_folder}")
+
         if not m_folder or not i_folder:
             continue # Skip folder if image/mask pair directory not found
 
