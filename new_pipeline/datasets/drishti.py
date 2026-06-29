@@ -17,23 +17,20 @@ class DrishtiDatasetSpliter(DatasetSpliter):
         train_paths, val_paths = train_test_split(data_paths, test_size=0.15, random_state=42)
 
         train_ds = StandardDataset(
-            os.path.join(path, 'train/images'),
-            os.path.join(path, 'train/mask'),
+            os.path.join(path, 'train/'),
             transforms=train_transforms,
             dataset_multiplier=config.augmentation.multiplier,
             ids=train_paths,
             n=config.num_of_samples
         )
         val_ds = StandardDataset(
-            os.path.join(path, 'train/images'),
-            os.path.join(path, 'train/mask'),
+            os.path.join(path, 'train/'),
             transforms=val_transforms,
             ids=val_paths,
             n=config.num_of_samples
         )
         test_ds = StandardDataset(
-            os.path.join(path, 'test/images'),
-            os.path.join(path, 'test/mask'),
+            os.path.join(path, 'test/'),
             transforms=val_transforms,
             n=config.num_of_samples
         )
