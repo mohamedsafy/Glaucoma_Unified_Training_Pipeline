@@ -14,7 +14,7 @@ Examine run_builder.py for more options.
 
 Example Code:
 The below code trains EfficientUnet-b7++ with specified training and validation transforms, specified visualization samples, data augmentation x4, 100 epochs
-'''
+```
 train_transforms = [
     {"type": "Resize", "height": 512, "width": 512},
     {"type": "HorizontalFlip", "p": 0.5},
@@ -76,4 +76,4 @@ config = RunConfig(
 
 run = RunBuilder().build(config)
 run.execute()
-'''
+```
