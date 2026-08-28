@@ -70,8 +70,7 @@ config = RunConfig(
     num_workers=4,
     #visualization_samples=[1,2]
     visualization_samples=['V0016.jpg','V0027.jpg','V0029.jpg','V0034.jpg','V0052.jpg','V0057.jpg','V0078.jpg','V0079.jpg','V0082.jpg','V0097.jpg','V0141.jpg','V0178.jpg','V0182.jpg','V0193.jpg','V0206.jpg','V0256.jpg','V0328.jpg','V0332.jpg','V0380.jpg','V0390.jpg'],
-    visualization_epochs=[1, 10, 15, 20, 25, 30, 35, 40, 45 ,50, 60, 70, 80, 90, 95, 100],
-    #visualization_epochs=[1, 2, 3, 4, 5],
+    visualization_epochs=[1, 10, 15, 20, 25, 30, 35, 40, 45 ,50, 60, 70, 80, 90, 95, 100]
 )
 
 run = RunBuilder().build(config)
